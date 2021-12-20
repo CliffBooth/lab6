@@ -15,8 +15,8 @@ class ContinueWatch : AppCompatActivity() {
     private var secondsElapsed: Int = 0
     lateinit var textSecondsElapsed: TextView
 
-    private var startedSleeping: Long = 0;
-    private var timeToSleep: Long = 1000;
+    private var startedSleeping: Long = 0
+    private var timeToSleep: Long = 1000
 
     companion object {
         const val STATE_SECONDS = "secondsElapsed"
@@ -34,10 +34,8 @@ class ContinueWatch : AppCompatActivity() {
                     Log.i("my", "going to sleep: $timeToSleep")
                     delay(timeToSleep)
                     timeToSleep = 1000
-                    textSecondsElapsed.post {
-                        textSecondsElapsed.text =
-                            getString(R.string.secondsElapsed, ++secondsElapsed)
-                    }
+                    textSecondsElapsed.text =
+                        getString(R.string.secondsElapsed, ++secondsElapsed)
                 }
             }
         }

@@ -10,14 +10,13 @@ class ContinueWatch : AppCompatActivity() {
     private var secondsElapsed: Int = 0
     lateinit var textSecondsElapsed: TextView
 
-    private var startedSleeping: Long = 0;
-    private var timeToSleep: Long = 1000;
+    private var startedSleeping: Long = 0
+    private var timeToSleep: Long = 1000
 
     private val runnable: () -> Unit = {
         Log.i("mythread", "${Thread.currentThread().id} created!")
-        while (true) {
+        while (!Thread.interrupted()) {
             try {
-                Log.i("mythread", "going to sleep: $timeToSleep")
                 startedSleeping = System.currentTimeMillis()
                 Thread.sleep(timeToSleep)
                 timeToSleep = 1000
@@ -69,9 +68,7 @@ class ContinueWatch : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (secondsElapsed != 0) {
-            textSecondsElapsed.post {
-                textSecondsElapsed.text = getString(R.string.secondsElapsed, secondsElapsed)
-            }
+            textSecondsElapsed.text = getString(R.string.secondsElapsed, secondsElapsed)
         }
         backgroundThread = Thread(runnable)
         backgroundThread.start()

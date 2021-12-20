@@ -1,11 +1,18 @@
 package com.example.executorService
 
+import android.app.Application
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.lab6.R
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
+
+class MyApplication: Application() {
+    val executorService: ExecutorService = Executors.newSingleThreadExecutor()
+}
 
 class ContinueWatch : AppCompatActivity() {
     private var secondsElapsed: Int = 0
@@ -14,7 +21,7 @@ class ContinueWatch : AppCompatActivity() {
     private var startedSleeping: Long = 0
     private var timeToSleep: Long = 1000
 
-    private lateinit var executorService: ExecutorService
+    private lateinit var future: Future<*>
 
     companion object {
         const val STATE_SECONDS = "secondsElapsed"
@@ -25,6 +32,8 @@ class ContinueWatch : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_continue_watch)
         textSecondsElapsed = findViewById(R.id.textSecondsElapsed)
+
+        Log.i("my", "currently running ${Thread.activeCount()}")
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -42,7 +51,7 @@ class ContinueWatch : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        executorService.shutdownNow()
+        future.cancel(true)
         val curTime = System.currentTimeMillis()
         timeToSleep -= curTime - startedSleeping
     }
@@ -51,26 +60,21 @@ class ContinueWatch : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (secondsElapsed != 0) {
-            textSecondsElapsed.post {
-                textSecondsElapsed.text = getString(R.string.secondsElapsed, secondsElapsed)
-            }
+            textSecondsElapsed.text = getString(R.string.secondsElapsed, secondsElapsed)
         }
-        executorService = Executors.newSingleThreadExecutor()
 
-        executorService.execute {
+        future = (application as MyApplication).executorService.submit {
+            Log.i("mythread", "${Thread.currentThread().id} created!")
             while (true) {
-                try {
-                    startedSleeping = System.currentTimeMillis()
-                    Thread.sleep(timeToSleep)
-                    timeToSleep = 1000
-                    textSecondsElapsed.post {
-                        textSecondsElapsed.text =
-                            getString(R.string.secondsElapsed, ++secondsElapsed)
-                    }
-                } catch (e: InterruptedException) {
-                    break
+                startedSleeping = System.currentTimeMillis()
+                Thread.sleep(timeToSleep)
+                timeToSleep = 1000
+                textSecondsElapsed.post {
+                    textSecondsElapsed.text =
+                        getString(R.string.secondsElapsed, ++secondsElapsed)
                 }
             }
         }
     }
+
 }
